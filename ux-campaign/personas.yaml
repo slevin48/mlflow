@@ -1,0 +1,202 @@
+# UX Personas for MLflow + JupyterLab + skore usability study
+# Generated for pre-MLOps experimentation workflow testing
+
+- persona:
+    name: "Priya Chandrasekaran"
+    role: "Junior Data Scientist at a mid-size fintech startup"
+    expertise_level: novice
+    tech_literacy: moderate
+    patience_threshold: medium
+    accessibility_needs: none
+    domain_knowledge: |
+      Comfortable with scikit-learn cross-validation and pandas workflows.
+      Has heard of MLflow from a conference talk but never used it hands-on.
+      Discovered skore last week through a colleague's Slack message.
+      No prior experience with experiment tracking tools; currently saves
+      results to CSV files and compares them in spreadsheets.
+
+    background: |
+      Priya graduated with an MS in Applied Statistics 18 months ago and joined
+      a fintech team that builds credit-risk models. She works in JupyterLab
+      daily, writes sklearn pipelines, and exports results to Excel for her
+      manager. She has never deployed a model or used a tracking server.
+
+    goals: |
+      Flow A: Find the experiment that skore just logged and understand what
+      metrics appeared without her explicitly calling mlflow.log_metric().
+      Flow C: Set up a fresh notebook that reproduces the skore+mlflow
+      workflow her colleague demonstrated, so she can track her own models.
+
+    frustrations: |
+      - UIs that use jargon she has not encountered (e.g., "artifact URI",
+        "run ID", "registered model stage") without inline explanations.
+      - Setup steps that assume she already has environment variables or
+        config files in place.
+      - Documentation that jumps between CLI, Python API, and UI without
+        signposting which path is relevant to her.
+
+    behavioral_constraints:
+      - "Reads every label and tooltip before clicking; slows down at any unfamiliar term."
+      - "Will not use the terminal inside JupyterLab; only interacts through notebook cells and the file browser."
+      - "Expects a 'getting started' wizard or empty-state guidance when she opens a tool for the first time."
+      - "Copies code snippets from docs verbatim without adapting them; breaks if example uses a different dataset name."
+
+    mental_model: |
+      Expects experiment tracking to work like Google Sheets: she runs code,
+      a row appears in a table, and she can sort/filter columns. Thinks of
+      "artifacts" as downloadable files, not structured objects. Assumes the
+      MLflow UI will show her a single flat list of everything she has ever run.
+
+    primary_flows: [A, C]
+
+- persona:
+    name: "Marcus Delgado"
+    role: "Senior MLOps Engineer at a large healthcare analytics company"
+    expertise_level: expert
+    tech_literacy: high
+    patience_threshold: low
+    accessibility_needs: none
+    domain_knowledge: |
+      Deep hands-on experience with MLflow (since v1.x), Weights & Biases,
+      DVC, and custom internal tracking platforms. Maintains a production
+      MLflow Tracking Server on Kubernetes. Familiar with the MLflow REST API,
+      model registry, and deployment pipelines.
+
+    background: |
+      Marcus has 9 years of experience spanning data engineering and MLOps.
+      He built his company's ML platform from scratch and mass-migrated 40
+      data scientists from ad-hoc notebooks to a governed experiment-tracking
+      workflow. He evaluates every new tool against his existing stack and
+      dismisses anything that feels like a regression.
+
+    goals: |
+      Flow A: Verify exactly what metadata skore's CrossValidationReport logs
+      and whether it follows MLflow tagging conventions he already enforces.
+      Flow B: Compare multiple skore-generated runs side-by-side and determine
+      whether the logged artifacts are rich enough to replace his team's
+      custom evaluation reports.
+
+    frustrations: |
+      - Tools that log unstructured or non-standard metadata he will have to
+        clean up later.
+      - Losing the ability to deep-link to a specific run or artifact.
+      - Auto-magic behavior that hides what is actually being tracked; he wants
+        explicit control.
+      - Comparison views that do not support selecting arbitrary metric
+        subsets or sorting by a custom column.
+
+    behavioral_constraints:
+      - "Opens browser DevTools network tab immediately to inspect API calls behind the UI."
+      - "Judges the tool within 90 seconds; if the comparison table cannot sort by a custom metric, he writes it off."
+      - "Will try the REST API or CLI before trusting the UI for any operation."
+      - "Mentally benchmarks every interaction against Weights & Biases dashboards and will vocalize the comparison."
+
+    mental_model: |
+      Expects a tracking tool to expose a structured, queryable store of
+      runs with typed parameters, metrics (with step history), and versioned
+      artifacts. Comparison should behave like a pivot table: pick axes,
+      filter, sort. Anything that requires more than two clicks to reach a
+      specific artifact is too many clicks.
+
+    primary_flows: [A, B]
+
+- persona:
+    name: "Lena Kowalski"
+    role: "Postdoctoral Researcher in Computational Neuroscience"
+    expertise_level: intermediate
+    tech_literacy: moderate
+    patience_threshold: low
+    accessibility_needs: none
+    domain_knowledge: |
+      Uses scikit-learn and PyTorch for brain-imaging classification tasks.
+      Has used MLflow once in a workshop but did not retain the details.
+      Tracks experiments in handwritten lab-notebook entries and folder
+      naming conventions (model_v3_final_FINAL2/).
+
+    background: |
+      Lena publishes papers under tight conference deadlines and views tooling
+      as a means to an end. She lives in JupyterLab and resents any workflow
+      that pulls her out of the notebook. If something does not work in under
+      two minutes, she closes the tab and reverts to her manual process.
+
+    goals: |
+      Flow B: Quickly compare two cross-validation runs to pick the better
+      model for a paper figure, then export the comparison.
+      Flow C: Set up a notebook from scratch to run a skore+mlflow pipeline
+      on her own dataset, but only if the setup takes fewer than five steps.
+
+    frustrations: |
+      - Installation or import errors that require Stack Overflow searches.
+      - UIs that require creating accounts, projects, or workspaces before
+        showing any data.
+      - Multi-step configuration (environment variables, YAML files, server
+        startup commands) before she can see a result.
+      - Slow-loading pages or spinners that last more than three seconds.
+
+    behavioral_constraints:
+      - "Clicks rapidly through any setup flow without reading instructions; hits errors from skipped steps."
+      - "Will close a browser tab if a page takes more than 4 seconds to render meaningful content."
+      - "Refuses to open a terminal; if a step requires a shell command, she pastes it into a notebook cell with '!' prefix."
+      - "If the first code cell raises an ImportError, she abandons the tool entirely for that session."
+
+    mental_model: |
+      Expects the experience to feel like a Jupyter widget: inline, instant,
+      no context switch. A tracking UI should be a read-only dashboard that
+      appears when she clicks a link in her notebook output. Comparing runs
+      should be like diffing two DataFrames side by side.
+
+    primary_flows: [B, C]
+
+- persona:
+    name: "David Okonkwo"
+    role: "Machine Learning Engineer at a government research lab"
+    expertise_level: intermediate
+    tech_literacy: high
+    patience_threshold: high
+    accessibility_needs: keyboard-only
+    domain_knowledge: |
+      Solid understanding of sklearn model evaluation and MLflow concepts
+      (experiments, runs, artifacts). Has used MLflow's Python API but
+      interacts with the UI exclusively via keyboard due to a repetitive
+      strain injury that prevents sustained mouse use.
+
+    background: |
+      David has 5 years of ML engineering experience and works on NLP models
+      for document classification in a secure government environment. Due to
+      a chronic wrist condition he navigates all software with keyboard
+      shortcuts and Tab/Shift-Tab. He evaluates every tool's accessibility
+      before recommending it to his team.
+
+    goals: |
+      Flow A: Navigate the MLflow UI entirely by keyboard to locate a
+      skore-generated experiment, open a run, and inspect its metrics
+      and artifacts.
+      Flow B: Use keyboard navigation to select two runs, open the comparison
+      view, and review logged artifacts without ever reaching for the mouse.
+      Flow C: Set up a new notebook in JupyterLab using only keyboard
+      shortcuts and verify the skore+mlflow integration logs correctly.
+
+    frustrations: |
+      - Interactive elements (buttons, links, expandable rows) that are not
+        reachable via Tab or have no visible focus indicator.
+      - Drag-and-drop interfaces with no keyboard alternative.
+      - Custom UI components (tables, charts, dropdowns) that trap keyboard
+        focus or break standard arrow-key navigation.
+      - Checkbox selection in tables that requires a mouse click with no
+        keyboard equivalent.
+
+    behavioral_constraints:
+      - "Navigates exclusively with Tab, Shift-Tab, Enter, Space, and arrow keys; never uses a mouse."
+      - "Will count the number of Tab presses needed to reach a target element; anything above 15 is a usability failure."
+      - "Tests every interactive element for a visible focus ring; reports missing focus states as blocking issues."
+      - "Expects standard ARIA roles on custom components; will inspect the DOM if a widget does not respond to expected keys."
+
+    mental_model: |
+      Expects web applications to follow WAI-ARIA authoring practices: tables
+      navigable with arrow keys, dialogs trapping focus, skip-navigation
+      links at the top of the page. Assumes that any well-built tool will
+      have full keyboard operability because accessibility is a baseline, not
+      a feature. If a core workflow requires the mouse, the tool is not ready
+      for adoption.
+
+    primary_flows: [A, B, C]
