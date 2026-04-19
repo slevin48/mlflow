@@ -2,7 +2,9 @@
 
 Connect skore's cross-validation reports to an MLflow backend for experiment tracking and persistence.
 
-Based on: https://skoredoc.eks.probabl.dev/auto_examples/technical_details/plot_mlflow_backend.html
+Based on: https://docs.skore.probabl.ai/stable/auto_examples/technical_details/plot_skore_mlflow_project.html
+
+> **Delivery slides:** see [`docs/slides.html`](docs/slides.html) for a walkthrough of how this repo was modernized (long-form write-up at [`docs/REPORT.md`](docs/REPORT.md)).
 
 ## Requirements
 
