@@ -120,3 +120,7 @@ Then open http://localhost:5000 in your browser.
 ├── plot_mlflow_backend.py    # Main integration script
 └── README.md                 # This file
 ```
+
+## Historical
+
+Earlier UX exploration work lived under `ux-campaign/`. It is archived, unchanged, on branch [`ux-campaign-archive`](https://github.com/slevin48/mlflow/tree/ux-campaign-archive).
