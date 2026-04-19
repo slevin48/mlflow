@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / py${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Cache dataset downloads
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/skrub
+            ~/scikit_learn_data
+          key: datasets-${{ matrix.os }}-py${{ matrix.python-version }}-v1
+          restore-keys: |
+            datasets-${{ matrix.os }}-py${{ matrix.python-version }}-
+            datasets-${{ matrix.os }}-
+
+      - name: Install dependencies
+        shell: bash
+        run: uv sync --frozen
+
+      - name: Run plot_mlflow_backend.py
+        shell: bash
+        timeout-minutes: 5
+        run: uv run python plot_mlflow_backend.py
+
+      - name: Run examples
+        shell: bash
+        timeout-minutes: 15
+        run: |
+          set -e
+          for script in examples/*.py; do
+            echo "::group::${script}"
+            uv run python "${script}"
+            echo "::endgroup::"
+          done
+
+      - name: Upload debug artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-debug-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: |
+            mlflow.db
+            mlruns/
+            *.py.stdout
+          if-no-files-found: ignore
