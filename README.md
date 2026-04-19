@@ -105,9 +105,13 @@ Then open http://localhost:5000 in your browser.
 
 ## Notes
 
-- **Serialization**: skore currently uses pickle to serialize reports in MLflow. Only load reports from sources you trust.
 - **Experiment name**: the MLflow experiment is created automatically using the `PROJECT` name.
 - **Run IDs**: use `pandas_summary.index` to retrieve `(experiment_id, run_id)` tuples for direct MLflow access.
+- **Serialization**: see the next section for how reports are persisted and the security implications.
+
+## Serialization and audit-readiness
+
+As of skore 0.15, `project.put(key, report)` serializes `CrossValidationReport` instances as pickle objects inside the MLflow artifact store. Loading a pickle runs arbitrary Python code on import, so retrieved reports should only come from sources you trust. MLflow 3.10 and later support [skops](https://skops.readthedocs.io/) as a scikit-learn-aware, pickle-free alternative for model artifacts, and MLflow surfaces a warning pointing to it whenever a pickle path is used. Teams evaluating this stack for audit-ready or regulated-industry workflows may want to track whether skore adopts a non-pickle serializer before relying on stored reports for downstream signing, provenance, or long-term archival.
 
 ## Files
 
