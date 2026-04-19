@@ -1,18 +1,19 @@
 """
-Connect MLflow to skore - based on:
-https://skoredoc.eks.probabl.dev/2532/auto_examples/technical_details/plot_mlflow_backend.html
+Connect MLflow to skore.
+
+Trains a HistGradientBoostingClassifier on the Iris dataset with 5-fold
+cross-validation via skore's `evaluate`, then stores the resulting report in
+an MLflow backend through `skore.Project(mode="mlflow")`.
 """
 
-import io
 import os
-from contextlib import redirect_stderr, redirect_stdout
 
 import mlflow
 import pandas as pd
 from sklearn.datasets import load_iris
 from sklearn.ensemble import HistGradientBoostingClassifier
 
-from skore import CrossValidationReport, Project
+from skore import Project, evaluate
 
 # Configuration — override via environment variables or edit directly
 PROJECT = os.environ.get("PROJECT", "iris-hgb-project")
@@ -21,16 +22,14 @@ TRACKING_URI = os.environ.get("TRACKING_URI", "sqlite:///mlflow.db")
 # 1. Build a report
 X, y = load_iris(return_X_y=True, as_frame=True)
 estimator = HistGradientBoostingClassifier()
-report = CrossValidationReport(estimator, X, y)
+report = evaluate(estimator, X, y, splitter=5)
 
 # 2. Push the report to MLflow backend
-# (suppress verbose DB initialization logs from MLflow/Alembic)
-with redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
-    project = Project(
-        PROJECT,
-        mode="mlflow",
-        tracking_uri=TRACKING_URI,
-    )
+project = Project(
+    PROJECT,
+    mode="mlflow",
+    tracking_uri=TRACKING_URI,
+)
 
 project.put("hgb-baseline", report)
 print("Report stored in MLflow experiment:", PROJECT)
