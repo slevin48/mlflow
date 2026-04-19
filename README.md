@@ -1,38 +1,34 @@
 # MLflow + skore Integration
 
-Connect skore's `CrossValidationReport` to an MLflow backend for experiment tracking and persistence.
+Connect skore's cross-validation reports to an MLflow backend for experiment tracking and persistence.
 
-Based on: https://skoredoc.eks.probabl.dev/2532/auto_examples/technical_details/plot_mlflow_backend.html
+Based on: https://skoredoc.eks.probabl.dev/auto_examples/technical_details/plot_mlflow_backend.html
 
 ## Requirements
 
-- Python 3.x
-- Virtual environment at `.venv/`
-- MLflow 3.10.1 (already installed)
-- skore (install below)
+- Python >= 3.11
+- [`uv`](https://docs.astral.sh/uv/) for environment and dependency management (recommended)
 
 ## Setup
 
-The `mode="mlflow"` feature is part of PR #2532 and not yet in a released version of skore. Install both required packages from the PR branch using `uv` (pip is not available in this venv):
+Clone the repo, then sync dependencies with `uv`:
 
 ```bash
-# Install skore from the PR branch (GIT_LFS_SKIP_SMUDGE avoids a Git LFS error on non-LFS objects)
-GIT_LFS_SKIP_SMUDGE=1 uv pip install \
-  "git+https://github.com/probabl-ai/skore.git@mlflow-proj-example#subdirectory=skore" \
-  --python D:/devel/mlflow/.venv/Scripts/python.exe
-
-# Install the MLflow plugin (separate package in the same repo)
-GIT_LFS_SKIP_SMUDGE=1 uv pip install \
-  "git+https://github.com/probabl-ai/skore.git@mlflow-proj-example#subdirectory=skore-mlflow-project" \
-  --python D:/devel/mlflow/.venv/Scripts/python.exe
+uv sync
 ```
 
-> **Note:** `GIT_LFS_SKIP_SMUDGE=1` is required because the repo uses Git LFS for some assets (e.g. SVG logos) that are not accessible without LFS credentials. Skipping smudge does not affect the installed package.
+This creates `.venv/` and installs everything declared in `pyproject.toml` — notably `skore[mlflow]`, `scikit-learn`, `pandas`, and `mlflow`.
+
+As an alternative to `uv sync`, you can install the skore MLflow extra directly into any venv:
+
+```bash
+uv pip install "skore[mlflow]"
+```
 
 ## Running the Example
 
 ```bash
-D:/devel/mlflow/.venv/Scripts/python.exe plot_mlflow_backend.py
+uv run python plot_mlflow_backend.py
 ```
 
 By default this uses a local SQLite database (`mlflow.db`) as the tracking store. No server required.
@@ -43,7 +39,7 @@ Set environment variables to override the defaults:
 
 ```bash
 PROJECT=my-project TRACKING_URI=http://localhost:5000 \
-  D:/devel/mlflow/.venv/Scripts/python.exe plot_mlflow_backend.py
+  uv run python plot_mlflow_backend.py
 ```
 
 | Variable | Default | Description |
@@ -53,7 +49,7 @@ PROJECT=my-project TRACKING_URI=http://localhost:5000 \
 
 ## What the Script Does
 
-1. **Build a report** — trains a `HistGradientBoostingClassifier` on the Iris dataset using `CrossValidationReport`
+1. **Build a report** — trains a `HistGradientBoostingClassifier` on the Iris dataset using `skore.evaluate(estimator, X, y, splitter=5)`, which returns a `CrossValidationReport`
 2. **Push to MLflow** — initializes a `skore.Project` in `mode="mlflow"` and stores the report with `project.put()`
 3. **Summarize** — retrieves a summary DataFrame with columns: `key`, `report_type`, `learner`, `ml_task`, `dataset`
 4. **Access run metadata** — fetches the MLflow run and its logged metrics via `mlflow.get_run(run_id)`
@@ -61,14 +57,14 @@ PROJECT=my-project TRACKING_URI=http://localhost:5000 \
 
 ## Results
 
-The script was run on 2026-03-09 against the Iris dataset using a `HistGradientBoostingClassifier` with 5-fold cross-validation. Results retrieved from MLflow:
+The script was run on 2026-04-19 against the Iris dataset using a `HistGradientBoostingClassifier` with 5-fold cross-validation. Results retrieved from MLflow:
 
 ### MLflow Run Summary
 
 | Field | Value |
 |---|---|
 | Experiment | `iris-hgb-project` |
-| Run ID | `54f0b2c1b0ac4f32acd194dfb8cf4d57` |
+| Run ID | `8527b63ba35d4f919be12ee93fcea65a` |
 | Key | `hgb-baseline` |
 
 ### Metrics (logged to MLflow)
@@ -80,8 +76,8 @@ The script was run on 2026-03-09 against the Iris dataset using a `HistGradientB
 | Recall (macro) | 0.9467 | 0.0650 |
 | ROC AUC | 0.9913 | 0.0099 |
 | Log loss | 0.2823 | 0.2432 |
-| Fit time (s) | 0.6037 | — |
-| Predict time (s) | 0.0177 | — |
+| Fit time (s) | 0.0976 | — |
+| Predict time (s) | 0.0053 | — |
 
 ### Per-class Metrics (from loaded report)
 
@@ -102,25 +98,10 @@ The model performs very well overall, with class 0 achieving perfect scores acro
 ## Inspecting Results in the MLflow UI
 
 ```bash
-D:/devel/mlflow/.venv/Scripts/mlflow.exe ui \
-  --backend-store-uri sqlite:///D:/devel/mlflow/mlflow.db
+uv run mlflow ui --backend-store-uri sqlite:///mlflow.db
 ```
 
 Then open http://localhost:5000 in your browser.
-
-## Known Issues
-
-### `mode="mlflow"` not available in skore 0.13.1
-
-The tutorial is based on a pre-release development build of skore (PR #2532), identifiable by the `/2532/` in the tutorial URL. The `mode="mlflow"` parameter is **not yet available** in the latest released version (0.13.1).
-
-Running the script with skore 0.13.1 raises:
-
-```
-ValueError: `mode` must be "hub" or "local" (found mlflow)
-```
-
-**Resolution:** install from the PR branch — see the [Setup](#setup) section above for the exact commands.
 
 ## Notes
 
@@ -132,8 +113,10 @@ ValueError: `mode` must be "hub" or "local" (found mlflow)
 
 ```
 .
-├── .venv/                    # Python virtual environment
-├── mlflow.db                 # SQLite tracking store (created on first run)
+├── pyproject.toml            # Project dependencies (skore[mlflow], scikit-learn, pandas, mlflow, skrub)
+├── uv.lock                   # Locked dependency versions (created by `uv sync`)
+├── mlflow.db                 # SQLite tracking store (created on first run; gitignored)
+├── mlruns/                   # MLflow artifact store (created on first run; gitignored)
 ├── plot_mlflow_backend.py    # Main integration script
 └── README.md                 # This file
 ```

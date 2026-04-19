@@ -1,0 +1,15 @@
+[project]
+name = "mlflow-skore-demos"
+version = "0.1.0"
+description = "skore ⇄ MLflow integration demos"
+requires-python = ">=3.11"
+dependencies = [
+    "skore[mlflow]>=0.15",
+    "scikit-learn",
+    "pandas",
+    "mlflow>=3.10",
+    "skrub",
+]
+
+[tool.uv]
+package = false
