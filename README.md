@@ -55,6 +55,10 @@ PROJECT=my-project TRACKING_URI=http://localhost:5000 \
 4. **Access run metadata** — fetches the MLflow run and its logged metrics via `mlflow.get_run(run_id)`
 5. **Load back** — retrieves the stored report from MLflow with `project.get(run_id)` and prints its metrics
 
+![MLflow run detail page showing skore-logged metrics and tags](docs/assets/mlflow-run-detail.png)
+
+*MLflow run detail page for a skore `CrossValidationReport`. Aggregated metrics (accuracy, log_loss, recall, ...) are logged by `project.put()`, and the `skore_*` / `learner` / `report_type` tags carry the methodology context back with the run.*
+
 ## Results
 
 The script was run on 2026-04-19 against the Iris dataset using a `HistGradientBoostingClassifier` with 5-fold cross-validation. Results retrieved from MLflow:
@@ -103,6 +107,12 @@ uv run mlflow ui --backend-store-uri sqlite:///mlflow.db
 
 Then open http://localhost:5000 in your browser.
 
+### Comparing multiple models in one experiment
+
+Each call to `project.put(key, report)` lands as its own MLflow run inside the experiment, so a bake-off across several estimators shows up in the MLflow UI as a single comparable list. The example under `examples/01_bakeoff.py` evaluates `HistGradientBoostingClassifier`, a scaled `LogisticRegression`, and `RandomForestClassifier` on the Digits dataset and persists all three as distinct runs in the same experiment:
+
+![Three bake-off runs (hgb, logreg, rf) listed in a single MLflow experiment](docs/assets/mlflow-bakeoff-experiment.png)
+
 ## Notes
 
 - **Experiment name**: the MLflow experiment is created automatically using the `PROJECT` name.
@@ -112,6 +122,12 @@ Then open http://localhost:5000 in your browser.
 ## Serialization and audit-readiness
 
 As of skore 0.15, `project.put(key, report)` serializes `CrossValidationReport` instances as pickle objects inside the MLflow artifact store. Loading a pickle runs arbitrary Python code on import, so retrieved reports should only come from sources you trust. MLflow 3.10 and later support [skops](https://skops.readthedocs.io/) as a scikit-learn-aware, pickle-free alternative for model artifacts, and MLflow surfaces a warning pointing to it whenever a pickle path is used. Teams evaluating this stack for audit-ready or regulated-industry workflows may want to track whether skore adopts a non-pickle serializer before relying on stored reports for downstream signing, provenance, or long-term archival.
+
+Once a report is loaded back with `project.get(run_id)`, skore exposes fold-level views that MLflow's aggregated run metrics alone don't surface — for example, a per-class ROC curve across the CV splits:
+
+![Skore ROC curve from a CrossValidationReport: one curve per class, AUC annotated as mean ± std across 5 folds](docs/assets/skore-fold-view.png)
+
+*Rendered from the hgb bake-off run's `CrossValidationReport` via `report.metrics.roc().plot()`. Same data as the MLflow run above; skore is the methodology lens on top of it.*
 
 ## Files
 
